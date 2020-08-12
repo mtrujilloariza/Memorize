@@ -15,20 +15,31 @@ struct EmojiMemoryGameView: View {
     var body: some View {
         VStack {
             Spacer()
-            Score(viewModel)
+           
+            Text("Score: \(viewModel.score)")
+                .font(Font.largeTitle)
+                .padding()
             
             Text(EmojiMemoryGame.theme)
             
             Grid (viewModel.cards) { card in
                 CardView(card: card).onTapGesture {
-                    self.viewModel.choose(card: card)
+                    withAnimation(.linear(duration: 0.55)){
+                        self.viewModel.choose(card: card)
+                    }
                 }
                     .padding(5)
             }
                 .padding()
                 .foregroundColor(Color.orange)
             
-            NewGame(viewModel).padding()
+            Button("New Game", action: {
+                withAnimation(.easeInOut){
+                    self.viewModel.randomizeTheme()
+                    self.viewModel.resetGame()
+                }
+            }).padding()
+            
             Spacer()
 
         }
@@ -45,71 +56,34 @@ struct CardView: View {
         }
     }
     
+    @ViewBuilder
     private func body(for size: CGSize) -> some View {
-        ZStack {
-            if card.isFaceUp {
-                RoundedRectangle(cornerRadius: cornerRadius).stroke(lineWidth: edgeLineWidth)
-                RoundedRectangle(cornerRadius: cornerRadius).fill(Color.white)
+        if card.isFaceUp || !card.isMactched {
+            ZStack {
+                Pie(startAngle: Angle.degrees(-90), endAngle: Angle.degrees(155-90), clockwise: true).padding(5).opacity(0.4)
                 Text(card.content)
-            } else {
-                if !card.isMactched{
-                    RoundedRectangle(cornerRadius: cornerRadius).fill()
-                }
+                    .font(Font.system(size: fontSize(for: size)))
+                    .rotationEffect(Angle.degrees(card.isMactched ? 360: 0))
+                    .animation(card.isMactched ? Animation.linear(duration: 1.5).repeatForever(autoreverses: false) : .default)
             }
-            
+            .cardify(isFaceUp: card.isFaceUp)
+            .transition(AnyTransition.scale)
         }
-        .font(Font.system(size: fontSize(for: size)))
     }
     
     //MARK: - Drawing Constants
     
-    private let cornerRadius: CGFloat = 10.0
-    private let edgeLineWidth: CGFloat = 3
-    private let fontScaleFactor: CGFloat = 0.5
+    private let fontScaleFactor: CGFloat = 0.7
     
     func fontSize(for size: CGSize) -> CGFloat {
         min(size.width, size.height) * fontScaleFactor
     }
 }
 
-struct Score: View {
-    
-    @ObservedObject var viewModel: EmojiMemoryGame
-    
-    init(_ viewModel: EmojiMemoryGame) {
-        self.viewModel = viewModel
-    }
-    
-    var body: some View {
-        Text("Score: \(viewModel.score)")
-            .font(Font.largeTitle)
-            .padding()
-    }
-}
-
-struct NewGame: View {
-    @ObservedObject var viewModel: EmojiMemoryGame
-    
-    init(_ viewModel: EmojiMemoryGame) {
-        self.viewModel = viewModel
-    }
-    
-    var body: some View {
-        Button("New Game", action: {
-            self.resetGame()
-        })
-        .padding()
-        
-    }
-    
-    private func resetGame() {
-        viewModel.randomizeTheme()
-        viewModel.generateNewModel()
-    }
-}
-
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        EmojiMemoryGameView(viewModel: EmojiMemoryGame())
+        let game = EmojiMemoryGame()
+//        game.choose(card: game.cards[0])
+        return EmojiMemoryGameView(viewModel: game)
     }
 }

@@ -34,14 +34,7 @@ class EmojiMemoryGame: ObservableObject {
                 return nil
         }
     }
-    
-    func randomizeTheme() {
-        EmojiMemoryGame.theme = EmojiMemoryGame.themes.randomElement()!
-    }
-    
-    func generateNewModel() {
-        model = EmojiMemoryGame.createMemoryGame()
-    }
+
     
     // MARK: - Access to the Model
     
@@ -57,5 +50,13 @@ class EmojiMemoryGame: ObservableObject {
     
     func choose(card: MemoryGame<String>.Card){
         model.choose(card: card)
+    }
+    
+    func randomizeTheme() {
+        EmojiMemoryGame.theme = EmojiMemoryGame.themes.randomElement()!
+    }
+    
+    func resetGame() {
+        model = EmojiMemoryGame.createMemoryGame()
     }
 }
